@@ -1,0 +1,72 @@
+const express = require('express')
+const next = require('next')
+const LRUCache = require('lru-cache')
+
+const dev = process.env.NODE_ENV !== 'production'
+const app = next({ dir: '.', dev })
+const handle = app.getRequestHandler()
+
+// This is where we cache our rendered HTML pages
+const ssrCache = new LRUCache({
+  max: 100,
+  maxAge: 1000 * 60 * 60 // 1hour
+})
+
+app.prepare()
+.then(() => {
+  const server = express()
+
+  // Use the `renderAndCache` utility defined below to serve pages
+  server.get('/', (req, res) => {
+    renderAndCache(req, res, '/')
+  })
+
+  server.get('/blog', (req, res) => {
+    renderAndCache(req, res, '/blog')
+  })
+
+  server.get('/blog/post/:slug', (req, res) => {
+    const queryParams = { id: req.params.id }
+    renderAndCache(req, res, '/post', queryParams)
+  })
+
+  server.get('/projects', (req, res) => {
+    renderAndCache(req, res, '/projects')
+  })
+
+  server.get('/projects?:slug', (req, res) => {
+    const queryParams = { id: req.params.id }
+    renderAndCache(req, res, '/projects/:slug', queryParams)
+  })
+
+  server.get('*', (req, res) => {
+    return handle(req, res)
+  })
+
+  server.listen(3000, (err) => {
+    if (err) throw err
+    console.log('> Ready on http://localhost:3000')
+  })
+})
+
+function renderAndCache (req, res, pagePath, queryParams) {
+  // If we have a page in the cache, let's serve it
+  if (ssrCache.has(req.url)) {
+    console.log(`CACHE HIT: ${req.url}`)
+    res.send(ssrCache.get(req.url))
+    return
+  }
+
+  // If not let's render the page into HTML
+  app.renderToHTML(req, res, pagePath, queryParams)
+    .then((html) => {
+      // Let's cache this page
+      console.log(`CACHE MISS: ${req.url}`)
+      ssrCache.set(req.url, html)
+
+      res.send(html)
+    })
+    .catch((err) => {
+      app.renderError(err, req, res, pagePath, queryParams)
+    })
+}

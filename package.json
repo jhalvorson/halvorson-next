@@ -1,0 +1,24 @@
+{
+  "name": "halvorson-next",
+  "version": "0.0.1",
+  "description": "WP-API decoupled application for halvorson.co.uk",
+  "main": "index.js",
+  "author": "Jamie Halvorson",
+  "license": "ISC",
+  "dependencies": {
+    "es6-promise": "^4.0.5",
+    "express": "^4.14.0",
+    "fetch-everywhere": "^1.0.5",
+    "lru-cache": "^4.0.2",
+    "next": "^2.0.0-beta.16",
+    "react": "^15.4.2",
+    "styled-components": "^1.2.1",
+    "styled-jsx-postcss": "^0.1.2",
+    "wpapi": "^1.0.0"
+  },
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js"
+  }
+}
