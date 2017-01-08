@@ -1,72 +1,28 @@
-const express = require('express')
+const { createServer } = require('http')
+const { parse } = require('url')
 const next = require('next')
-const LRUCache = require('lru-cache')
+const pathMatch = require('path-match')
 
 const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dir: '.', dev })
+const app = next({ dev })
 const handle = app.getRequestHandler()
-
-// This is where we cache our rendered HTML pages
-const ssrCache = new LRUCache({
-  max: 100,
-  maxAge: 1000 * 60 * 60 // 1hour
-})
+const route = pathMatch()
+const match = route('/blog/post/:slug')
 
 app.prepare()
 .then(() => {
-  const server = express()
+  createServer((req, res) => {
+    const { pathname } = parse(req.url)
+    const params = match(pathname)
+    if (params === false) {
+      handle(req, res)
+      return
+    }
 
-  // Use the `renderAndCache` utility defined below to serve pages
-  server.get('/', (req, res) => {
-    renderAndCache(req, res, '/')
+    app.render(req, res, '/post', params)
   })
-
-  server.get('/blog', (req, res) => {
-    renderAndCache(req, res, '/blog')
-  })
-
-  server.get('/blog/post/:slug', (req, res) => {
-    const queryParams = { id: req.params.id }
-    renderAndCache(req, res, '/post', queryParams)
-  })
-
-  server.get('/projects', (req, res) => {
-    renderAndCache(req, res, '/projects')
-  })
-
-  server.get('/projects?:slug', (req, res) => {
-    const queryParams = { id: req.params.id }
-    renderAndCache(req, res, '/projects/:slug', queryParams)
-  })
-
-  server.get('*', (req, res) => {
-    return handle(req, res)
-  })
-
-  server.listen(3000, (err) => {
+  .listen(3000, (err) => {
     if (err) throw err
     console.log('> Ready on http://localhost:3000')
   })
 })
-
-function renderAndCache (req, res, pagePath, queryParams) {
-  // If we have a page in the cache, let's serve it
-  if (ssrCache.has(req.url)) {
-    console.log(`CACHE HIT: ${req.url}`)
-    res.send(ssrCache.get(req.url))
-    return
-  }
-
-  // If not let's render the page into HTML
-  app.renderToHTML(req, res, pagePath, queryParams)
-    .then((html) => {
-      // Let's cache this page
-      console.log(`CACHE MISS: ${req.url}`)
-      ssrCache.set(req.url, html)
-
-      res.send(html)
-    })
-    .catch((err) => {
-      app.renderError(err, req, res, pagePath, queryParams)
-    })
-}
