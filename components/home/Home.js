@@ -14,15 +14,33 @@ export default class Home extends Component {
         <style jsx>
         {`
           h1 {
-            font-weight: 300;
-            font-size: 2.6rem;
+            font-weight: 400;
+            font-size: 2rem;
           }
 
           .home-main {
-            max-width:640px;
+            max-width:710px;
             display: block;
-            margin: 0px 30px;
-            text-align: left;
+            margin: 0px auto;
+            text-align: center;
+            padding: 110px 30px 0;
+            line-height: 1.4;
+
+            span {
+              display: block;
+            }
+
+            a {
+              position: relative;
+
+              &:before {
+                position: absolute;
+                top: 10px;
+                width: 100%;
+                background-color: var(--color-black);
+                height: 2px;
+              }
+            }
           }
         `}
         </style>

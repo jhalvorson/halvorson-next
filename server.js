@@ -1,27 +1,31 @@
-const { createServer } = require('http')
-const { parse } = require('url')
+const express = require('express')
 const next = require('next')
-const pathMatch = require('path-match')
 
-const dev = process.env.NODE_ENV !== 'production'
-const app = next({ dev })
+const dev = process.env.NODE_ENV == 'development'
+const app = next({ dir: '.', dev })
 const handle = app.getRequestHandler()
-const route = pathMatch()
-const match = route('/blog/post/:slug')
 
 app.prepare()
 .then(() => {
-  createServer((req, res) => {
-    const { pathname } = parse(req.url)
-    const params = match(pathname)
-    if (params === false) {
-      handle(req, res)
-      return
-    }
+  const server = express()
 
-    app.render(req, res, '/post', params)
+  server.get('/blog/:slug', (req, res) => {
+    return app.render(req, res, '/post', req.params)
   })
-  .listen(3000, (err) => {
+
+  server.get('/blog/category/:slug', (req, res) => {
+    return app.render(req, res, '/blog-category', req.params)
+  })
+
+  server.get('/project/:slug', (req, res) => {
+    return app.render(req, res, '/project', req.params)
+  })
+
+  server.get('*', (req, res) => {
+    return handle(req, res)
+  })
+
+  server.listen(3000, (err) => {
     if (err) throw err
     console.log('> Ready on http://localhost:3000')
   })

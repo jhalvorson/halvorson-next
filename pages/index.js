@@ -5,38 +5,60 @@ import Home from '../components/home/Home'
 import HomePostList from '../components/home/HomePostList'
 import Loader from '../components/loader/Loader'
 import Navigation from '../components/navigation/Navigation'
+import HomeProject from '../components/home/HomeProject'
 
 export default class Index extends Component {
   static async getInitialProps () {
-    const url = 'http://halvorson-react:8888/wp-json/wp/v2/'
-    const getPages = await fetch(`${url}pages`)
-    const getPosts = await fetch(`${url}posts?page=1&per_page=4&_embed`)
+    const url = process.env.API
+
+    const githubCall = await fetch(`https://api.github.com/users/jhalvorson/events/public`)
+    const getPages = await fetch(`${url}/wp/v2/pages?include=203`)
     let pages = await getPages.json()
-    let posts = await getPosts.json()
-    return { pages, posts }
+    let github = await githubCall.json()
+    return { pages, github }
   }
 
   render() {
+    const { github } = this.props
+    const projects = this.props.pages[0].acf.project_list
     return <main>
       <Navigation url={this.props.url}/>
-      {this.props.pages && this.props.posts ?
+      {this.props.pages ?
         <section className="home">
           <Home
             pages={this.props.pages}
           />
-          <HomePostList
-            posts={this.props.posts}
-          />
+        {
+        // github.map((event, key) =>
+        //   <p>{event.type}</p>
+        // )
+        }
+        <ul className="home-work">
+          {
+            projects.map((project, key) =>
+            <li key={key}>
+              <HomeProject
+                project={project.select_project} />
+            </li>
+            )
+          }
+        </ul>
         </section>
         :
         <Loader />
       }
       <style jsx>
       {`
-        .home {
+        .home-work {
           display: flex;
-          height: calc(100vh - 100px);
-          align-items: flex-end;
+          list-style-type: none;
+          margin-top: 200px;
+          padding: 0 40px;
+
+          & li {
+            flex: 1 1 auto;
+            /*position: relative;*/
+          }
         }
       `}
       </style>

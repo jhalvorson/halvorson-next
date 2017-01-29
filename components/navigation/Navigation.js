@@ -1,16 +1,17 @@
 import React, { Component } from 'react'
 import Link from 'next/link'
+import Head from 'next/head'
+
 
 export default class Navigation extends Component {
   render() {
-    return <nav>
-      {this.props.url.pathname === "/" ?
-        null
-        :
-        <Link href="/">
-          <a>Home</a>
-        </Link>
-      }
+    return <div>
+    <Head>
+      <title>Jamie Halvorson</title>
+      <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      <link rel="stylesheet" href="/static/styles/base.css"/>
+    </Head>
+    <nav>
       <ul>
         <li>
           <Link href="/about">
@@ -28,29 +29,35 @@ export default class Navigation extends Component {
           </Link>
         </li>
       </ul>
-      <style jsx global>
+      <style jsx>
       {`
-        @import url('https://cloud.typography.com/7647334/7021372/css/fonts.css');
-
-        html {
-          background-color: #FFF;
-          color: #000;
-          font-family: "Gotham Narrow SSm A", "Gotham Narrow SSm B", helvetica, sans-serif;
-          font-size: 16px;
+        ul {
+          display: flex;
+          list-style-type: none;
+          margin: 0;
+          padding: 60px;
         }
 
-        h1, h2, h3, h4 {
-          font-family: "Gotham Narrow A", "Gotham Narrow B", helvetica, sans-serif;
+        li {
+          flex: 1 1 auto;
+
+          &:nth-of-type(2) {
+            text-align: center;
+          }
+
+          &:nth-of-type(3) {
+            text-align: right;
+          }
         }
 
         a {
-          color: #90a4ae;
-          text-decoration: none;
-          font-weight: bolder;
+          font-size: .9rem;
+          font-weight: 500;
         }
 
       `}
       </style>
     </nav>
+  </div>
   }
 }
